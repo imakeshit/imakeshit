@@ -1,0 +1,44 @@
+name: Refresh Stats
+
+# Keeps the README's GitHub Stats panel alive.
+# Runs weekly on Monday 00:00 UTC and can be triggered manually.
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-stats
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch live stats and rebuild SVGs
+        env:
+          # dynamic token provided by Actions - nothing to configure
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # works in any repo: fetches stats for the account that owns it
+          GH_USER: ${{ github.repository_owner }}
+        run: node scripts/update-stats.mjs
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/ data/
+          git diff --cached --quiet || git commit -m "chore: refresh stats [skip ci]"
+          git push

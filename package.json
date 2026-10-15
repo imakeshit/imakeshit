@@ -1,0 +1,9 @@
+{
+  "name": "beingdurgesh-readme",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "stats": "node scripts/update-stats.mjs"
+  }
+}
